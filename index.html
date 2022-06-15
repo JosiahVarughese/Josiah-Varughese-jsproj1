@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            * {
+                display: block;
+                box-sizing: inherit;
+                text-align: center;
+                margin: 0 auto;
+                padding: 0;
+            }
+            html {
+                box-sizing: border-box;
+                width: 100vw;
+                min-width: 400px;
+                height: auto;
+            }
+            script, head {
+                display: none;
+            }
+            body {
+                width: 600px;
+                padding: 30px;
+            }
+            
+            .wrapper {
+                width: 400px;
+                height: 400px;
+                padding: 15px;
+                margin-bottom: 20px;
+                border: 1px solid grey;
+                border-radius: 15px;
+            }
+            .wrapper > h2 {
+                text-align: left;
+                font-size: 22px;
+                margin-bottom: 20px;
+                color: grey;
+            }
+            
+            #input > button {
+                width: 180px;
+                height: 35px;
+                color: dimgrey;
+                border-width: 1px;
+                border-radius: 30px;
+                border-color: dimgrey;
+            }
+
+            #fields {
+                margin-bottom: 20px;
+            }
+            #fields > div {
+                font-size: 0;
+                width: 220px;
+                margin-bottom: 7px;
+            }
+            #fields input {
+                text-align: left;
+                width: 220px;
+                height: 28px;
+                padding: 5px;
+                border: 1px solid grey;
+                border-radius: 5px;
+            }
+            #fields .label {
+                display: inline-block;
+                text-align: left;
+                font-size: 16px;
+                width: 50%;
+            }
+            #fields .error_indicator {
+                display: inline-block;
+                text-align: right;
+                font-size: 20px;
+                width: 50%;
+                color: red;
+            }
+            #fields input:focus {
+                outline: none;
+            }
+
+            #output p {
+                font-size: 16px;
+                line-height: 1.5;
+                letter-spacing: 4px;
+                width: 340px;
+                padding: 5px;
+                border-bottom: 1px dashed grey;
+            }
+            #output .enf {
+                display: inline;
+                font-size: 18px;
+                font-weight: bold;
+                color: dimgrey;
+            }
+            #output .err {
+                text-align: left;
+                color: red;
+            }
+            #output .err .ex {
+                text-align: left;
+                margin-left: 13px;
+                color: red;
+            }
+            #output .ex {
+                display: inline-block;
+                font-size: 12px;
+                color: dimgrey;
+            }
+
+            #x_container {
+                margin-bottom: 50px;
+                border-radius: 15px;
+            }
+            #x_container h2 {
+                display: none;
+            }
+            #x_container .x_row {
+                display: block;
+                text-align: left;
+                font-size: 0px;
+            }
+            #x_container .x_column {
+                display: inline-block;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 0px 3px;
+                color: grey;
+            }
+            #x_container .count {
+                position: absolute;
+                transform-origin: right;
+                font-size: 12px;
+                font-weight: normal;
+                letter-spacing: 2px;
+                color: grey;
+            }
+            #x_container .row_count {
+                display: inline-block;
+                transform: translate(-170%, 0);
+            }
+            #x_container .column_count {
+                display: block;
+                transform: translate(-87%, 100%) rotate(-90deg);
+            }
+
+            #demo_x_container p {
+                text-align: left;
+                letter-spacing: 5px;
+                font-size: 18px;
+                line-height: 0.8;
+                font-weight: bold;
+                color: gray;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- HTML -->
+        <div id="input" class="wrapper">
+            <h2>Information</h2>
+            <div id="fields">
+                <div id="fname">
+                    <label class="label">First Name</label>
+                    <label class="error_indicator"></label>
+                    <input class="input">
+                </div>
+        
+                <div id="lname">
+                    <label class="label">Last Name</label>
+                    <label class="error_indicator"></label>
+                    <input class="input">
+                </div>
+        
+                <div id="uid">
+                    <label class="label">User ID</label>
+                    <label class="error_indicator"></label>
+                    <input class="input">
+                </div>
+        
+                <div id="bday">
+                    <label class="label">Birthday</label>
+                    <label class="error_indicator"></label>
+                    <input type="date" class="input">
+                </div>
+            </div>
+            
+            <button onclick="Accept()">Accept</button>
+        </div>
+        <div id="output" class="wrapper">
+            <h2>Results:</h2>
+            <p>Hello World!<br><br><span class="ex">Please fill out your information to continue.</span></p>
+        </div>
+        
+        <script>
+            // INPUT VARIABLES
+            var fname = document.querySelector('#fname input');
+            var lname = document.querySelector('#lname input');
+            var uid = document.querySelector('#uid input');
+            var birthday = document.querySelector('#bday input');
+            
+            // OUTPUT VARIABLES
+            var outputField = document.querySelector('#output p');
+            var output = '';
+            
+            const fieldSuccessColor = 'lightgreen';
+            const fieldFailureColor = 'red';
+            var isBday = false;
+            
+            // OUTPUY ERRORS
+            const fnameErrMsg = '*Invalid First Name';
+            const lnameErrMsg = '*Invalid Last Name';
+            const uidErrMsg = "*Invalid User ID<br><span class='ex'>(Must contain a mix of numbers, lower & uppercase letters and be 8-12 characters long).</span>";
+            const bdayErrMsg = '*Please enter your date of birth';
+            
+            const fnameErrFld = document.querySelector('#fname label.error_indicator');
+            const lnameErrFld = document.querySelector('#lname label.error_indicator');
+            const uidErrFld = document.querySelector('#uid label.error_indicator');
+            const bdayErrFld = document.querySelector('#bday label.error_indicator');
+            
+            // FIELD INPUT
+            fname.oninput = function () { checkField(fname, fnameErrFld, fnameErrMsg) };
+            lname.oninput = function () { checkField(lname, lnameErrFld, lnameErrMsg) };
+            uid.oninput = function () { checkField(uid, uidErrFld, uidErrMsg, true) };
+            birthday.oninput = function () { checkField(birthday, bdayErrFld, bdayErrMsg) };
+
+            // USER ID VALIDATION TOOLS
+            const numbers = "0123456789";
+            const lowerCaseLetters = "abcdefghijklmnopqrstuvwxyz";
+            const upperCaseLetters = lowerCaseLetters.toUpperCase();
+        
+            // FUNCTIONS
+            function Accept() {
+                output = '';
+                
+                let validFName = checkField(fname, fnameErrFld, fnameErrMsg);
+                let validLName = checkField(lname, lnameErrFld, lnameErrMsg);
+                let validUID = checkField(uid, uidErrFld, uidErrMsg, true);
+                let validDate = checkField(birthday, bdayErrFld, bdayErrMsg);
+                
+                if (validFName && validLName && validUID && validDate) { output = assembleOutputMessage(); }
+                printOutput();
+            }
+            
+            // USER ID VALIDATION
+            function onValidate (uidValue) {
+                if (uidValue.length >= 8 && uidValue.length <= 12)
+                {
+                    let hasNumber = false;
+                    let hasUpper = false;
+                    let hasLower = false;
+                    
+                    for (let i = 0; i < uidValue.length; i++)
+                    {
+                        if (numbers.includes(uidValue[i])) hasNumber = true;
+                        if (upperCaseLetters.includes(uidValue[i])) hasUpper = true;
+                        if (lowerCaseLetters.includes(uidValue[i])) hasLower = true;
+                    }
+                    
+                    return hasNumber && hasUpper && hasLower;
+                }
+                
+                return false;
+            }
+            
+            // DAYS ALIVE CALCULATION
+            function dateDiff(date) {
+                let splitDate = date.split('-');
+                let date1 = new Date(splitDate[0], splitDate[1]-1, splitDate[2], 12);
+                let today = new Date();
+                
+                isBday = date1.getDate() === today.getDate() && date1.getMonth() === today.getMonth();
+
+                let daysDifference = Math.round((today.getTime() - date1.getTime()) / (1000 * 3600 * 24));
+                
+                if (daysDifference === NaN) return null;
+                return daysDifference;
+            }
+            
+            // Misc
+            function checkField(field, errFld, errMsg, validateFormat=false) {
+                let validFormat = (validateFormat) ? onValidate(field.value) : true;
+                field.style.setProperty("border-width", "2px");
+                if (field.value !== '' && validFormat) {
+                    errFld.innerHTML = '';
+                    field.style.setProperty("border-color", fieldSuccessColor);
+                    
+                    return true;
+                }
+                else {
+                    if (output !== '') { output += '<br>'; }
+                    output += `<div class="err">${errMsg}</div>`;
+                    
+                    errFld.innerHTML = '*';
+                    field.style.setProperty("border-color", fieldFailureColor);
+                }
+                return false;
+            }
+            
+            function assembleOutputMessage() {
+                let daysAlive = dateDiff(birthday.value);
+                
+                let outputStr = '';
+                let userName = `<span class="enf">${fname.value} ${lname.value}</span>`;
+                
+                if (daysAlive >= 0) {
+                    if (isBday) userName = `<span class="enf">Happy Birthday!</span><br>${userName}!<br><br>`;
+
+                    let dayDays = (daysAlive === 1) ? 'day' : 'days';
+                    
+                    outputStr += `${userName} you have been breathing for <span class="enf">${daysAlive}</span> ${dayDays}!`;
+                }
+                else
+                {
+                    outputStr += `${userName} you haven't been born yet...<br><br>`;
+                }
+                if (daysAlive < 360*18) { outputStr += " You are probably <span class='enf'>not old enough</span> to take this class!"; }
+                
+                return outputStr;
+            }
+            
+            function printOutput() {
+                console.log(output);
+                outputField.innerHTML = output;
+            }
+            
+            // X's
+            let str = "";
+            
+            for (let y = 1; y <= 20; y++) {
+                
+                let countY = (y < 10) ? `0${y}` : y;
+                
+                str += `<span class="x_row"><span class="count row_count">${countY} - </span>`;
+                let columnCount = '';
+                
+                for (let x = 0; x < y; x++) {
+                    if (y === 20) {
+                        let countX = 20 - x;
+                        countX = (countX < 10) ? `0${countX}` : countX;
+                        columnCount = `<span class='count column_count'>${countX} - </span>`;
+                        closingTags = '</span>';
+                    }
+                    str += `<span class=x_column>X${columnCount}</span>`;
+                }
+                
+                str += '</span>';
+            }
+            
+            document.write(`<div id="x_container" class="wrapper"><h2>X Y Version</h2>${str}</div>`);
+            
+            let demoStr = "";
+
+            for (let i = 1; i <= 20; i++) {
+                demoStr = `${demoStr}<br>${"".padStart(i, "x")}`;
+            }
+
+            document.write(`<div id="demo_x_container" class="wrapper"><h2>.padStart() Version</h2><p>${demoStr}</p></div>`);
+
+        </script>
+    </body>
+</html>
+ 
